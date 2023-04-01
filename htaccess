@@ -1,0 +1,63 @@
+<IfModule mod_rewrite.c>
+# Yeniden yazma motorunu etkinleştir
+Yeniden Yazma Motoru Açık
+
+# Şüpheli istek yöntemlerini engelle
+RewriteCond %{REQUEST_METHOD} ^(HEAD|TRACE|DELETE|TRACK|DEBUG) [NC]
+RewriteRule ^(.*)$ - [K,L]
+
+# WP timthumb hack'ini engelle
+RewriteCond %{REQUEST_URI} (timthumb\.php|phpthumb\.php|thumb\.php|thumbs\.php) [NC]
+Kuralı Yeniden Yaz. - [S=1]
+
+# Şüpheli kullanıcı aracılarını ve isteklerini engelleyin
+RewriteCond %{HTTP_USER_AGENT} (libwww-perl|wget|python|nikto|curl|scan|java|winhttp|clshttp|loader) [NC,VEYA]
+RewriteCond %{HTTP_USER_AGENT} (<|>|'|%0A|%0D|%27|%3C|%3E|%00) [NC,VEYA]
+RewriteCond %{HTTP_USER_AGENT} (;|<|>|'|"|\)|\(|%0A|%0D|%22|%27|%28|%3C|%3E|%00).*(libwww -perl|wget|python|nikto|curl|scan|java|winhttp|HTTrack|clshttp|arşivleyici|yükleyici|e-posta|hasat|özüt|grab|madenci) [NC,VEYA]
+RewriteCond %{THE_REQUEST} \?\ HTTP/ [NC,VEYA]
+RewriteCond %{THE_REQUEST} \/\*\ HTTP/ [NC,VEYA]
+RewriteCond %{THE_REQUEST} vb/şifre [NC,VEYA]
+RewriteCond %{THE_REQUEST} cgi-bin [NC,VEYA]
+RewriteCond %{THE_REQUEST} (%0A|%0D) [NC,VEYA]
+
+# MySQL enjeksiyonlarını, RFI, base64 vb.
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http:// [VEYA]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http%3A%2F%2F [VEYA]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=(\.\.//?)+ [VEYA]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=/([a-z0-9_.]//?)+ [NC,VEYA]
+RewriteCond %{QUERY_STRING} \=PHP[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4 }-[0-9a-f]{12} [NC,VEYA]
+RewriteCond %{QUERY_STRING} (\.\./|\.\.) [VEYA]
+RewriteCond %{QUERY_STRING} ftp\: [NC,VEYA]
+RewriteCond %{QUERY_STRING} http\: [NC,VEYA]
+RewriteCond %{QUERY_STRING} https\: [NC,VEYA]
+RewriteCond %{QUERY_STRING} \=\|w\| [NC,VEYA]
+RewriteCond %{QUERY_STRING} ^(.*)/self/(.*)$ [NC,VEYA]
+RewriteCond %{QUERY_STRING} ^(.*)cPath=http://(.*)$ [NC,VEYA]
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,VEYA]
+RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,VEYA]
+RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC,VEYA]
+RewriteCond %{QUERY_STRING} (<|%3C)([^i]*i)+kare.*(>|%3E) [NC,VEYA]
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [NC,VEYA]
+RewriteCond %{QUERY_STRING} base64_(en|de)kodu[^(]*\([^)]*\) [NC,OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [VEYA]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2}) [VEYA]
+RewriteCond %{QUERY_STRING} ^.*(\[|\]|\(|\)|<|>).* [NC,VEYA]
+RewriteCond %{QUERY_STRING} (NULL|OUTFILE|LOAD_FILE) [VEYA]
+RewriteCond %{QUERY_STRING} (\./|\../|\.../)+(motd|etc|bin) [NC,OR]
+RewriteCond %{QUERY_STRING} (localhost|loopback|127\.0\.0\.1) [NC,VEYA]
+RewriteCond %{QUERY_STRING} (<|>|'|%0A|%0D|%27|%3C|%3E|%00) [NC,VEYA]
+RewriteCond %{QUERY_STRING} concat[^\(]*\( [NC,VEYA]
+RewriteCond %{QUERY_STRING} union([^s]*s)+select [NC,VEYA]
+RewriteCond %{QUERY_STRING} union([^a]*a)+ll([^s]*s)+elect [NC,VEYA]
+RewriteCond %{QUERY_STRING} (;|<|>|'|"|\)|%0A|%0D|%22|%27|%3C|%3E|%00).*(/\*|birlik|seç |ekle|bırak|sil|güncelle|yayın|oluştur|karakter|dönüştür|değiştir|bildir|sipariş|komut dosyası|ayarla|md5|kıyaslama|kodla) [NC,VEYA]
+
+# PHP-CGI Güvenlik Açığı
+RewriteCond %{QUERY_STRING} ^(%2d|\-)[^=]+$ [NC,VEYA]
+
+#proc/self/çevre? Mümkün değil!
+RewriteCond %{QUERY_STRING} proc\/self\/environ [NC,VEYA]
+
+RewriteCond %{QUERY_STRING} (sp_executesql) [NC]
+RewriteRule ^(.*)$ - [K,L]
+
+</IfModule>
